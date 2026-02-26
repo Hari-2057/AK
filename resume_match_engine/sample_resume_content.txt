@@ -1,0 +1,21 @@
+John Doe
+Python Developer
+
+Profile:
+Enthusiastic Python developer with 2 years of experience building web applications. Passionate about learning new technologies and solving complex problems.
+
+Skills:
+- Programming: Python, JavaScript, HTML, CSS
+- Frameworks: Flask, React
+- Tools: Git, GitHub, VS Code
+- Basics: Machine Learning
+
+Experience:
+Web Developer | Tech Innovations Inc.
+June 2022 - Present
+- Developed RESTful APIs using Python and Flask.
+- Collaborated with frontend team to integrate user interfaces.
+- Managed version control using Git.
+
+Education:
+B.S. in Computer Science, University of Technology

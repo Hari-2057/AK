@@ -1,0 +1,5 @@
+.DS_Store
+**/venv/
+**/lite_venv/
+**/*.pyc
+**/__pycache__/

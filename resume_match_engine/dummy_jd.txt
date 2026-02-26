@@ -1,0 +1,9 @@
+Senior Python Developer
+
+Key Requirements:
+- 3+ years of experience in Python development.
+- Strong proficiency in Python frameworks like Django and Flask.
+- Experience with containerization technologies such as Docker.
+- Proficient in SQL database design and optimization.
+- Hands-on experience with cloud platforms, specifically AWS.
+- Excellent communication and teamwork skills.
