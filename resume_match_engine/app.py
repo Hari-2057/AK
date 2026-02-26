@@ -2,14 +2,20 @@ import streamlit as st
 import re
 import json
 from collections import Counter
-from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
 import PyPDF2
+
+# --- Dependency Check & Fail-Safe ---
+try:
+    from sklearn.metrics.pairwise import cosine_similarity
+    from sentence_transformers import SentenceTransformer
+    HAS_AI = True
+except ImportError:
+    HAS_AI = False
 
 # --- UI Setup ---
 st.set_page_config(
     page_title="Resume Intelligence Engine",
-    page_icon="�",
+    page_icon="🔮",
     layout="wide",
 )
 
@@ -45,16 +51,19 @@ def extract_pdf_data(file):
     return text
 
 def calculate_match_score(resume, jd):
-    try:
-        model = SentenceTransformer('all-MiniLM-L6-v2')
-        embeddings = model.encode([resume, jd])
-        score = cosine_similarity([embeddings[0]], [embeddings[1]])[0][0]
-        return round(score * 100, 2)
-    except:
-        # Fallback keyword match
-        r_words = set(re.findall(r'\w+', resume.lower()))
-        j_words = set(re.findall(r'\w+', jd.lower()))
-        return round((len(r_words & j_words) / len(j_words)) * 100, 2) if j_words else 0
+    if HAS_AI:
+        try:
+            model = SentenceTransformer('all-MiniLM-L6-v2')
+            embeddings = model.encode([resume, jd])
+            score = cosine_similarity([embeddings[0]], [embeddings[1]])[0][0]
+            return round(score * 100, 2)
+        except:
+            pass
+    
+    # Fallback keyword match if AI is missing or fails
+    r_words = set(re.findall(r'\w+', resume.lower()))
+    j_words = set(re.findall(r'\w+', jd.lower()))
+    return round((len(r_words & j_words) / len(j_words)) * 100, 2) if j_words else 0
 
 def deep_analyze_skills(text):
     found = {}
