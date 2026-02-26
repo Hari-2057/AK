@@ -9,7 +9,7 @@ try:
     from sklearn.metrics.pairwise import cosine_similarity
     from sentence_transformers import SentenceTransformer
     HAS_AI = True
-except ImportError:
+except Exception:
     HAS_AI = False
 
 # --- UI Setup ---
