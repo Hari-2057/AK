@@ -94,37 +94,21 @@ def draw_skill_pills(skills, is_missing=False):
     st.markdown(html, unsafe_allow_html=True)
 
 def main():
-    # --- State Management & Controls (MUST BE FIRST) ---
-    if 'resume_text_input' not in st.session_state:
-        st.session_state['resume_text_input'] = ""
-    if 'jd_text_input' not in st.session_state:
-        st.session_state['jd_text_input'] = ""
-    if 'jd_text_input_file' not in st.session_state:
-        st.session_state['jd_text_input_file'] = ""
+    # 1. State Initialization
+    keys = ['resume_text_input', 'jd_text_input', 'jd_text_input_file']
+    for k in keys:
+        if k not in st.session_state:
+            st.session_state[k] = ""
 
-    st.sidebar.markdown("### 🛠️ Developer Tools")
-    if st.sidebar.button("💡 Try Sample Data"):
-        try:
-            with open("dummy_jd.txt") as f: 
-                content_jd = f.read()
-            with open("sample_resume_content.txt") as f: 
-                content_resume = f.read()
-            
-            # Set values explicitly
-            st.session_state['jd_text_input'] = content_jd
-            st.session_state['resume_text_input'] = content_resume
-            st.session_state['jd_text_input_file'] = content_jd
-            st.rerun()
-        except Exception as e: 
-            st.sidebar.error(f"Sample files missing: {e}")
-
-    if st.sidebar.button("🧹 Clear All"):
-        st.session_state['resume_text_input'] = ""
-        st.session_state['jd_text_input'] = ""
-        st.session_state['jd_text_input_file'] = ""
+    # 2. Sidebar Control
+    st.sidebar.markdown("### 🛠️ CONTROL PANEL")
+    if st.sidebar.button("🗑️ Reset All Data", use_container_width=True):
+        for k in keys: st.session_state[k] = ""
         st.rerun()
+    st.sidebar.markdown("---")
+    st.sidebar.caption("Resume Engine v2.0 Pro")
 
-    # Hero Section
+    # 3. Hero Section
     st.markdown("""
     <div class="hero-container fade-in">
         <h1 class="hero-text">Resume Engine.</h1>
@@ -135,111 +119,85 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # Centered Input Hub
+    # 4. Input Hub
     _, center, _ = st.columns([1, 4, 1])
-    
     with center:
         st.markdown('<div class="custom-card input-section fade-in">', unsafe_allow_html=True)
-        
         mode = st.radio("Choose Input Method", ["⚡ Paste Content", "📄 Upload Files"], horizontal=True)
-        
-        col_in1, col_in2 = st.columns(2)
+        cin1, cin2 = st.columns(2)
         
         if mode == "📄 Upload Files":
-            with col_in1:
-                resume_file = st.file_uploader("Drop Resume (PDF)", type=["pdf"])
-                resume_text_file = extract_pdf_data(resume_file) if resume_file else ""
-            with col_in2:
-                jd_text_area = st.text_area("Target Job Description", key="jd_text_input_file", height=180, placeholder="Paste JD here...")
+            with cin1:
+                f = st.file_uploader("Drop Resume (PDF)", type=["pdf"])
+                r_text = extract_pdf_data(f) if f else ""
+            with cin2:
+                st.text_area("Target Job Description", key="jd_text_input_file", height=180)
+            final_r, final_j = r_text, st.session_state.jd_text_input_file
         else:
-            with col_in1:
-                st.text_area("Your Resume Content", key="resume_text_input", height=300, placeholder="Paste resume text or use 'Try Sample' in sidebar...")
-            with col_in2:
-                st.text_area("Target Job Description", key="jd_text_input", height=300, placeholder="Paste job description text...")
+            with cin1:
+                st.text_area("Your Resume", key="resume_text_input", height=300)
+            with cin2:
+                st.text_area("Job Description", key="jd_text_input", height=300)
+            final_r, final_j = st.session_state.resume_text_input, st.session_state.jd_text_input
 
         st.markdown("</div>", unsafe_allow_html=True)
         
-        # Action Center
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-        analyze_btn = st.button("🚀 INITIATE INTELLIGENCE SCAN")
+        # Sample Data Button (In middle)
+        if not final_r and not final_j:
+            if st.button("✨ QUICK-LOAD SAMPLE PROFILE", use_container_width=True):
+                try:
+                    with open("dummy_jd.txt") as f: jd = f.read()
+                    with open("sample_resume_content.txt") as f: res = f.read()
+                    st.session_state.jd_text_input = st.session_state.jd_text_input_file = jd
+                    st.session_state.resume_text_input = res
+                    st.rerun()
+                except: pass
 
-    # Final text selection logic
-    if mode == "📄 Upload Files":
-        final_resume_text = resume_text_file
-        final_jd_text = st.session_state.get('jd_text_input_file', "")
-    else:
-        final_resume_text = st.session_state.get('resume_text_input', "")
-        final_jd_text = st.session_state.get('jd_text_input', "")
+        analyze_btn = st.button("🔥 START INTELLIGENCE SCAN", use_container_width=True)
 
-    # --- Analysis Phase ---
+    # 5. Analysis Hub
     if analyze_btn:
-        if not final_resume_text or not final_jd_text:
+        if not final_r or not final_j:
             st.warning("Action required: Please provide both resume and job description.")
             return
 
         with st.spinner("Decoding Professional DNA..."):
-            # 1. Main Scores
-            score = calculate_match_score(final_resume_text, final_jd_text)
+            score = calculate_match_score(final_r, final_j)
+            r_skills = [s for sub in deep_analyze_skills(final_r).values() for s in sub]
+            j_skills = [s for sub in deep_analyze_skills(final_j).values() for s in sub]
+            matching = sorted(list(set(r_skills) & set(j_skills)))
+            missing = sorted(list(set(j_skills) - set(r_skills)))
             
-            # 2. Skills Analysis
-            r_skills_all = [s for sub in deep_analyze_skills(final_resume_text).values() for s in sub]
-            j_skills_all = [s for sub in deep_analyze_skills(final_jd_text).values() for s in sub]
-            
-            matching = sorted(list(set(r_skills_all) & set(j_skills_all)))
-            missing = sorted(list(set(j_skills_all) - set(r_skills_all)))
-            
-            # 3. Enhanced Features
-            word_count = len(final_resume_text.split())
-            read_time = max(1, word_count // 200)
-            
-            # Result Visualization
             st.markdown('<div class="custom-card fade-in">', unsafe_allow_html=True)
             m1, m2, m3, m4 = st.columns(4)
             with m1: draw_metric("MATCH SCORE", f"{score}%", "AI Semantic Match")
-            with m2: draw_metric("TOTAL SKILLS", len(r_skills_all), "Detected Competencies")
+            with m2: draw_metric("TOTAL SKILLS", len(r_skills), "Competencies Found")
             with m3: draw_metric("ATS READINESS", "HIGH" if score > 75 else "MEDIUM", "Format Compliance")
-            with m4: draw_metric("READ TIME", f"{read_time}m", f"{word_count} Words")
+            with m4: draw_metric("READ TIME", f"{max(1, len(final_r.split())//200)}m", "Industry Standard")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # Details Section
-            t1, t2, t3 = st.tabs(["🎯 STRATEGIC GAPS", "� KEYWORD ENGINE", "� PROFILE HEALTH"])
-            
+            t1, t2, t3 = st.tabs(["🎯 STRATEGIC GAPS", "📊 KEYWORD ENGINE", "📈 PROFILE HEALTH"])
             with t1:
                 c1, c2 = st.columns(2)
                 with c1:
                     st.markdown("### ✅ Strengths")
                     if matching: draw_skill_pills(matching)
-                    else: st.info("No matching database keywords found.")
+                    else: st.info("No matching keywords found.")
                 with c2:
-                    st.markdown("### 🧨 Missing Criticals")
-                    if missing: draw_skill_pills(missing, is_missing=True)
-                    else: st.success("Zero keyword gaps detected!")
+                    st.markdown("### 🧨 Critical Gaps")
+                    if missing: draw_skill_pills(missing, True)
+                    else: st.success("Zero gaps detected!")
 
             with t2:
-                st.markdown("### Resume Keyword Density")
-                words = re.findall(r'\b\w{4,}\b', final_resume_text.lower())
-                common = Counter([w for w in words if w not in {'from', 'with', 'that', 'this', 'have'}]).most_common(8)
-                
-                for word, count in common:
-                    st.markdown(f"**{word.upper()}** ({count}x)")
-                    st.markdown(f"""
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: {min(100, count*15)}%;"></div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                words = Counter([w for w in re.findall(r'\b\w{4,}\b', final_r.lower()) if w not in {'from','with','that','this','have'}]).most_common(8)
+                for w, c in words:
+                    st.markdown(f"**{w.upper()}** ({c}x)")
+                    st.markdown(f'<div class="bar-container"><div class="bar-fill" style="width: {min(100, c*15)}%;"></div></div>', unsafe_allow_html=True)
 
             with t3:
-                st.markdown("### Professional Format Consistency")
-                checks = {
-                    "Contact Info Found": bool(re.search(r'@', final_resume_text)),
-                    "Education Section": bool(re.search(r'Education|University|Degree', final_resume_text, re.I)),
-                    "Experience Timeline": bool(re.search(r'20\d\d|Experience|History', final_resume_text, re.I)),
-                    "Skills Highlighted": bool(r_skills_all)
-                }
-                for check, status in checks.items():
-                    color = "#10b981" if status else "#ef4444"
-                    icon = "◈" if status else "◇"
-                    st.markdown(f"<p style='color: {color}; font-size: 1.1rem; font-weight: 500;'>{icon} {check}</p>", unsafe_allow_html=True)
+                checks = {"Contact info": "@" in final_r, "Education": bool(re.search(r'Education|Degree', final_r, re.I)), "Experience": bool(re.search(r'20\d\d|Experience', final_r, re.I)), "Skills": bool(r_skills)}
+                for k, v in checks.items():
+                    st.markdown(f"<p style='color: {'#10b981' if v else '#ef4444'}; font-size: 1.1rem;'>{'◈' if v else '◇'} {k} detected</p>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
