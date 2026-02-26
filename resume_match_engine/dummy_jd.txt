@@ -1,9 +1,15 @@
-Senior Python Developer
+Senior Software Engineer - AI & Data Products
 
-Key Requirements:
-- 3+ years of experience in Python development.
-- Strong proficiency in Python frameworks like Django and Flask.
-- Experience with containerization technologies such as Docker.
-- Proficient in SQL database design and optimization.
-- Hands-on experience with cloud platforms, specifically AWS.
-- Excellent communication and teamwork skills.
+Role Overview:
+We are looking for a Senior Software Engineer to build scalable backend systems and AI-driven features. You will work with complex data architectures and lead technical initiatives.
+
+Required Skills:
+- 5+ years of experience with Python, Node.js, and SQL.
+- Strong expertise in Machine Learning frameworks like TensorFlow or PyTorch.
+- Experience with Cloud Infrastructure (AWS/Docker/Kubernetes).
+- Familiarity with NLP and data visualization tools (Tableau/Pandas).
+- Excellent Communication and Leadership skills.
+- Proven track record in Agile/Scrum environments.
+
+Education:
+- Bachelor's or Master's in Computer Science or related field.

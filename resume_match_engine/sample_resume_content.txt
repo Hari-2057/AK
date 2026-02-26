@@ -1,21 +1,27 @@
-John Doe
-Python Developer
+HARI PREETH
+Email: hari.preeth@example.com | Phone: +91 9876543210
+LinkedIn: linkedin.com/in/haripreeth | Portfolio: haripreeth.dev
 
-Profile:
-Enthusiastic Python developer with 2 years of experience building web applications. Passionate about learning new technologies and solving complex problems.
+PROFESSIONAL SUMMARY:
+Innovative Software Engineer with 4 years of experience specializing in Python development, Machine Learning, and Cloud Architecture. Passionate about building AI-driven solutions to solve real-world problems.
 
-Skills:
-- Programming: Python, JavaScript, HTML, CSS
-- Frameworks: Flask, React
-- Tools: Git, GitHub, VS Code
-- Basics: Machine Learning
+TECHNICAL SKILLS:
+- Languages: Python, JavaScript, SQL, C++
+- Frameworks: React, Django, Flask, scikit-learn
+- AI/ML: NLP, Pandas, Numpy, Matplotlib
+- Tools: AWS, Docker, Git, Jira, Tableau
+- Soft Skills: Teamwork, Problem Solving, Agile
 
-Experience:
-Web Developer | Tech Innovations Inc.
-June 2022 - Present
-- Developed RESTful APIs using Python and Flask.
-- Collaborated with frontend team to integrate user interfaces.
-- Managed version control using Git.
+PROFESSIONAL EXPERIENCE:
+AI Developer | TechSolutions Corp | 2021 – Present
+- Led the development of a resume parsing engine using NLP.
+- Optimized database queries in PostgreSQL, improving speed by 40%.
+- Collaborated in an Agile team of 10 developers.
 
-Education:
-B.S. in Computer Science, University of Technology
+Junior Developer | WebStream Inc | 2019 – 2021
+- Developed responsive web interfaces using React and CSS.
+- Maintained CI/CD pipelines using GitHub Actions.
+
+EDUCATION:
+Bachelor of Technology in Computer Science | Global Institute of Technology | 2019
+GPA: 3.8/4.0
