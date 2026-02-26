@@ -94,6 +94,36 @@ def draw_skill_pills(skills, is_missing=False):
     st.markdown(html, unsafe_allow_html=True)
 
 def main():
+    # --- State Management & Controls (MUST BE FIRST) ---
+    if 'resume_text_input' not in st.session_state:
+        st.session_state['resume_text_input'] = ""
+    if 'jd_text_input' not in st.session_state:
+        st.session_state['jd_text_input'] = ""
+    if 'jd_text_input_file' not in st.session_state:
+        st.session_state['jd_text_input_file'] = ""
+
+    st.sidebar.markdown("### 🛠️ Developer Tools")
+    if st.sidebar.button("💡 Try Sample Data"):
+        try:
+            with open("dummy_jd.txt") as f: 
+                content_jd = f.read()
+            with open("sample_resume_content.txt") as f: 
+                content_resume = f.read()
+            
+            # Set values explicitly
+            st.session_state['jd_text_input'] = content_jd
+            st.session_state['resume_text_input'] = content_resume
+            st.session_state['jd_text_input_file'] = content_jd
+            st.rerun()
+        except Exception as e: 
+            st.sidebar.error(f"Sample files missing: {e}")
+
+    if st.sidebar.button("🧹 Clear All"):
+        st.session_state['resume_text_input'] = ""
+        st.session_state['jd_text_input'] = ""
+        st.session_state['jd_text_input_file'] = ""
+        st.rerun()
+
     # Hero Section
     st.markdown("""
     <div class="hero-container fade-in">
@@ -133,32 +163,7 @@ def main():
         st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         analyze_btn = st.button("🚀 INITIATE INTELLIGENCE SCAN")
 
-    # Sidebar Tools
-    st.sidebar.markdown("### 🛠️ Developer Tools")
-    
-    # Initialize session state for text areas if not already there
-    if 'resume_text_input' not in st.session_state:
-        st.session_state['resume_text_input'] = ""
-    if 'jd_text_input' not in st.session_state:
-        st.session_state['jd_text_input'] = ""
-
-    if st.sidebar.button("💡 Try Sample Data"):
-        try:
-            with open("dummy_jd.txt") as f: 
-                st.session_state['jd_text_input'] = f.read()
-            with open("sample_resume_content.txt") as f: 
-                st.session_state['resume_text_input'] = f.read()
-            st.rerun()
-        except Exception as e: 
-            st.sidebar.error(f"Sample files missing: {e}")
-
-    if st.sidebar.button("🧹 Clear All"):
-        st.session_state['resume_text_input'] = ""
-        st.session_state['jd_text_input'] = ""
-        st.session_state['jd_text_input_file'] = "" # Clear for file mode too
-        st.rerun()
-
-    # Final text selection based on mode
+    # Final text selection logic
     if mode == "📄 Upload Files":
         final_resume_text = resume_text_file
         final_jd_text = st.session_state.get('jd_text_input_file', "")
