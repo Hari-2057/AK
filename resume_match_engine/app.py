@@ -126,32 +126,41 @@ def main():
         mode = st.radio("Choose Input Method", ["⚡ Paste Content", "📄 Upload Files"], horizontal=True)
         cin1, cin2 = st.columns(2)
         
+        # Get base directory for files
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
         if mode == "📄 Upload Files":
             with cin1:
                 f = st.file_uploader("Drop Resume (PDF)", type=["pdf"])
                 r_text = extract_pdf_data(f) if f else ""
             with cin2:
                 st.text_area("Target Job Description", key="jd_text_input_file", height=180)
-            final_r, final_j = r_text, st.session_state.jd_text_input_file
+            final_r, final_j = r_text, st.session_state.get('jd_text_input_file', '')
         else:
             with cin1:
                 st.text_area("Your Resume", key="resume_text_input", height=300)
             with cin2:
                 st.text_area("Job Description", key="jd_text_input", height=300)
-            final_r, final_j = st.session_state.resume_text_input, st.session_state.jd_text_input
+            final_r, final_j = st.session_state.get('resume_text_input', ''), st.session_state.get('jd_text_input', '')
 
         st.markdown("</div>", unsafe_allow_html=True)
         
-        # Sample Data Button (In middle)
-        if not final_r and not final_j:
+        # Sample Data Button (In middle) - Show if fields are essentially empty
+        if not final_r.strip() and not final_j.strip():
             if st.button("✨ QUICK-LOAD SAMPLE PROFILE", use_container_width=True):
                 try:
-                    with open("dummy_jd.txt") as f: jd = f.read()
-                    with open("sample_resume_content.txt") as f: res = f.read()
-                    st.session_state.jd_text_input = st.session_state.jd_text_input_file = jd
-                    st.session_state.resume_text_input = res
+                    jd_path = os.path.join(base_dir, "dummy_jd.txt")
+                    res_path = os.path.join(base_dir, "sample_resume_content.txt")
+                    
+                    with open(jd_path, "r") as f_jd: jd = f_jd.read()
+                    with open(res_path, "r") as f_res: res = f_res.read()
+                    
+                    st.session_state['jd_text_input'] = jd
+                    st.session_state['jd_text_input_file'] = jd
+                    st.session_state['resume_text_input'] = res
                     st.rerun()
-                except: pass
+                except Exception as e:
+                    st.error(f"Error loading sample data: {e}")
 
         analyze_btn = st.button("🔥 START INTELLIGENCE SCAN", use_container_width=True)
 
