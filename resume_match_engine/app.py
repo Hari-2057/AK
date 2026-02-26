@@ -2,15 +2,17 @@ import streamlit as st
 import re
 import json
 from collections import Counter
-import PyPDF2
-
 # --- Dependency Check & Fail-Safe ---
 try:
     from sklearn.metrics.pairwise import cosine_similarity
     from sentence_transformers import SentenceTransformer
+    import PyPDF2
     HAS_AI = True
 except Exception:
     HAS_AI = False
+    # Define a dummy PyPDF2 if missing to avoid NameError later
+    import types
+    PyPDF2 = types.ModuleType("PyPDF2")
 
 # --- UI Setup ---
 st.set_page_config(
@@ -116,14 +118,14 @@ def main():
         if mode == "📄 Upload Files":
             with col_in1:
                 resume_file = st.file_uploader("Drop Resume (PDF)", type=["pdf"])
-                resume_text = extract_pdf_data(resume_file) if resume_file else ""
+                resume_text_file = extract_pdf_data(resume_file) if resume_file else ""
             with col_in2:
-                jd_text = st.text_area("Target Job Description", height=180, placeholder="Paste JD here...")
+                jd_text_area = st.text_area("Target Job Description", key="jd_text_input_file", height=180, placeholder="Paste JD here...")
         else:
             with col_in1:
-                resume_text = st.text_area("Your Resume Content", height=300, placeholder="Paste resume text or use 'Try Sample' in sidebar...")
+                st.text_area("Your Resume Content", key="resume_text_input", height=300, placeholder="Paste resume text or use 'Try Sample' in sidebar...")
             with col_in2:
-                jd_text = st.text_area("Target Job Description", height=300, placeholder="Paste job description text...")
+                st.text_area("Target Job Description", key="jd_text_input", height=300, placeholder="Paste job description text...")
 
         st.markdown("</div>", unsafe_allow_html=True)
         
@@ -132,39 +134,57 @@ def main():
         analyze_btn = st.button("🚀 INITIATE INTELLIGENCE SCAN")
 
     # Sidebar Tools
-    st.sidebar.markdown("### �️ Developer Tools")
-    if st.sidebar.button("💡 Load Sample Data"):
-        try:
-            with open("dummy_jd.txt") as f: st.session_state['demo_jd'] = f.read()
-            with open("sample_resume_content.txt") as f: st.session_state['demo_resume'] = f.read()
-            st.rerun()
-        except: st.error("Sample files missing.")
+    st.sidebar.markdown("### 🛠️ Developer Tools")
+    
+    # Initialize session state for text areas if not already there
+    if 'resume_text_input' not in st.session_state:
+        st.session_state['resume_text_input'] = ""
+    if 'jd_text_input' not in st.session_state:
+        st.session_state['jd_text_input'] = ""
 
-    # Shared State for Sample Data
-    if 'demo_jd' in st.session_state and not jd_text:
-        jd_text = st.session_state['demo_jd']
-    if 'demo_resume' in st.session_state and not resume_text:
-        resume_text = st.session_state['demo_resume']
+    if st.sidebar.button("💡 Try Sample Data"):
+        try:
+            with open("dummy_jd.txt") as f: 
+                st.session_state['jd_text_input'] = f.read()
+            with open("sample_resume_content.txt") as f: 
+                st.session_state['resume_text_input'] = f.read()
+            st.rerun()
+        except Exception as e: 
+            st.sidebar.error(f"Sample files missing: {e}")
+
+    if st.sidebar.button("🧹 Clear All"):
+        st.session_state['resume_text_input'] = ""
+        st.session_state['jd_text_input'] = ""
+        st.session_state['jd_text_input_file'] = "" # Clear for file mode too
+        st.rerun()
+
+    # Final text selection based on mode
+    if mode == "📄 Upload Files":
+        final_resume_text = resume_text_file
+        final_jd_text = st.session_state.get('jd_text_input_file', "")
+    else:
+        final_resume_text = st.session_state.get('resume_text_input', "")
+        final_jd_text = st.session_state.get('jd_text_input', "")
 
     # --- Analysis Phase ---
     if analyze_btn:
-        if not resume_text or not jd_text:
+        if not final_resume_text or not final_jd_text:
             st.warning("Action required: Please provide both resume and job description.")
             return
 
         with st.spinner("Decoding Professional DNA..."):
             # 1. Main Scores
-            score = calculate_match_score(resume_text, jd_text)
+            score = calculate_match_score(final_resume_text, final_jd_text)
             
             # 2. Skills Analysis
-            r_skills_all = [s for sub in deep_analyze_skills(resume_text).values() for s in sub]
-            j_skills_all = [s for sub in deep_analyze_skills(jd_text).values() for s in sub]
+            r_skills_all = [s for sub in deep_analyze_skills(final_resume_text).values() for s in sub]
+            j_skills_all = [s for sub in deep_analyze_skills(final_jd_text).values() for s in sub]
             
             matching = sorted(list(set(r_skills_all) & set(j_skills_all)))
             missing = sorted(list(set(j_skills_all) - set(r_skills_all)))
             
             # 3. Enhanced Features
-            word_count = len(resume_text.split())
+            word_count = len(final_resume_text.split())
             read_time = max(1, word_count // 200)
             
             # Result Visualization
@@ -192,7 +212,7 @@ def main():
 
             with t2:
                 st.markdown("### Resume Keyword Density")
-                words = re.findall(r'\b\w{4,}\b', resume_text.lower())
+                words = re.findall(r'\b\w{4,}\b', final_resume_text.lower())
                 common = Counter([w for w in words if w not in {'from', 'with', 'that', 'this', 'have'}]).most_common(8)
                 
                 for word, count in common:
@@ -206,9 +226,9 @@ def main():
             with t3:
                 st.markdown("### Professional Format Consistency")
                 checks = {
-                    "Contact Info Found": bool(re.search(r'@', resume_text)),
-                    "Education Section": bool(re.search(r'Education|University|Degree', resume_text, re.I)),
-                    "Experience Timeline": bool(re.search(r'20\d\d|Experience|History', resume_text, re.I)),
+                    "Contact Info Found": bool(re.search(r'@', final_resume_text)),
+                    "Education Section": bool(re.search(r'Education|University|Degree', final_resume_text, re.I)),
+                    "Experience Timeline": bool(re.search(r'20\d\d|Experience|History', final_resume_text, re.I)),
                     "Skills Highlighted": bool(r_skills_all)
                 }
                 for check, status in checks.items():
